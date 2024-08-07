@@ -383,7 +383,22 @@ function base64ToBlob (base64) {
 
 async function calculateImageHash (blob) {
   const buffer = await blob.arrayBuffer()
-  const hashBuffer = await crypto.subtle.digest('SHA-256', buffer)
+  let hashBuffer = null;
+  if (window.crypto && window.crypto.subtle) {
+      // 使用 crypto.subtle
+       hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+  } else {
+      // 使用备选方案
+      console.error('crypto.subtle is not supported in this environment.');
+      // 示例：使用 crypto-js 库作为备选方案
+      try {
+          const CryptoJS = require("crypto-js");
+           hashBuffer = CryptoJS.SHA256(buffer);
+          console.log("SHA-256 hash:", hash.toString());
+      } catch (error) {
+          console.error("Failed to use alternative library:", error);
+      }
+  }
   const hashArray = Array.from(new Uint8Array(hashBuffer))
   const hashHex = hashArray
     .map(byte => byte.toString(16).padStart(2, '0'))
